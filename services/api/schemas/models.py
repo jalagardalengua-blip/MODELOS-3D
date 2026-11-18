@@ -21,6 +21,7 @@ class ProviderStatusModel(BaseModel):
     reason: str | None
     license: str
     licenseReviewRequired: bool  # noqa: N815
+    sendsDataExternally: bool = False  # noqa: N815
 
 
 class ProvidersResponse(BaseModel):

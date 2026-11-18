@@ -13,6 +13,7 @@ from ...base_provider import (
     Capability,
     GenerationRequest,
     GenerationResult,
+    ProgressFn,
     ProviderKind,
     ProviderUnavailableError,
 )
@@ -32,5 +33,5 @@ class HunyuanProvider(BaseProvider):
     def check_availability(self) -> tuple[bool, str | None]:
         return False, "Pendiente de revisión de licencia para España/UE antes de integrarlo."
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(self, request: GenerationRequest, progress: ProgressFn | None = None) -> GenerationResult:
         raise ProviderUnavailableError("Hunyuan3D no está integrado.")

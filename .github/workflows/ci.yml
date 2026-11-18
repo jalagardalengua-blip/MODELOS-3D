@@ -36,4 +36,4 @@ jobs:
           cache: pip
           cache-dependency-path: services/requirements.txt
       - run: python -m pip install -r services/requirements.txt
-      - run: python -m pytest tests/backend tests/glb -q
+      - run: python -m pytest tests -q

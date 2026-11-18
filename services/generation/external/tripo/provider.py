@@ -16,6 +16,7 @@ from ...base_provider import (
     Capability,
     GenerationRequest,
     GenerationResult,
+    ProgressFn,
     ProviderKind,
     ProviderUnavailableError,
 )
@@ -28,6 +29,7 @@ class TripoProvider(BaseProvider):
     capabilities = (Capability.TEXT_TO_3D, Capability.IMAGE_TO_3D, Capability.MULTI_IMAGE_TO_3D, Capability.PBR_TEXTURES)
     license = "Según plan: el gratuito restringe exportación y uso comercial"
     license_review_required = True
+    sends_data_externally = True
 
     def is_enabled(self) -> bool:
         return os.environ.get("TRIPO_ENABLED", "false").lower() == "true"
@@ -45,5 +47,5 @@ class TripoProvider(BaseProvider):
             return False, "Define TRIPO_MAX_CREDITS_PER_SESSION > 0 para evitar gastos imprevistos."
         return False, "Configurado. El adaptador de API se implementa en la Fase 5."
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(self, request: GenerationRequest, progress: ProgressFn | None = None) -> GenerationResult:
         raise ProviderUnavailableError("El adaptador de Tripo se implementa en la Fase 5.")

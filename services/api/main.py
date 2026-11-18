@@ -14,11 +14,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ..generation.provider_manager import ProviderManager
-from .routes import glb, system
+from .jobs import JobManager
+from .routes import generation, glb, system
 from .security.secrets import load_env_file
 
 
-def create_app(manager: ProviderManager | None = None) -> FastAPI:
+def create_app(manager: ProviderManager | None = None, jobs: JobManager | None = None) -> FastAPI:
     load_env_file()
     app = FastAPI(title="ALAGARDA 3D STUDIO · motor local", version=system.VERSION)
     origins = [
@@ -35,8 +36,10 @@ def create_app(manager: ProviderManager | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     app.state.providers = manager or ProviderManager()
+    app.state.jobs = jobs or JobManager(app.state.providers)
     app.include_router(system.router)
     app.include_router(glb.router)
+    app.include_router(generation.router)
     return app
 
 

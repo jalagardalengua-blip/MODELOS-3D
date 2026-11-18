@@ -6,7 +6,7 @@ import { Button, Field, inputClass, Row, Section, StatusDot } from '../component
 export function EnginePanel() {
   const apiUrl = useStudio((s) => s.apiUrl);
   const setApiUrl = useStudio((s) => s.setApiUrl);
-  const { state, version, providers, hardware, error, check } = useEngine();
+  const { state, version, providers, hardware, config, error, check } = useEngine();
   const [url, setUrl] = useState(apiUrl);
 
   return (
@@ -38,6 +38,19 @@ export function EnginePanel() {
         )}
       </Section>
 
+      {state === 'online' && (
+        <Section title="Hugging Face">
+          <Row label="HF_TOKEN">{config?.hfToken ?? 'no configurado'}</Row>
+          {!config?.hfToken && (
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+              Funciona sin token con el cupo de invitado. Con una cuenta gratuita tienes más cupo diario de GPU: crea un token de lectura en
+              huggingface.co → Settings → Access Tokens y ponlo en el archivo <span className="mono">.env</span> como{' '}
+              <span className="mono">HF_TOKEN=…</span>. Después reinicia el motor.
+            </p>
+          )}
+        </Section>
+      )}
+
       {hardware && (
         <Section title="Hardware detectado">
           <Row label="Sistema">{hardware.platform}</Row>
@@ -68,6 +81,7 @@ export function EnginePanel() {
               Licencia: {p.license}
               {p.licenseReviewRequired && <span className="ml-1 text-amber-300">· revisión obligatoria antes de uso comercial</span>}
             </div>
+            {p.sendsDataExternally && <div className="mt-0.5 text-[10px] text-zinc-500">Envía los datos de entrada a un servicio externo.</div>}
           </div>
         ))}
       </Section>

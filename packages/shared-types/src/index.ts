@@ -50,6 +50,8 @@ export interface AssetProvenance {
   originalFileName: string | null;
   /** ID del activo del que deriva (p. ej. una exportación de otro activo). */
   parentId: string | null;
+  /** Trabajo de generación del motor local que lo produjo. */
+  jobId?: string | null;
 }
 
 export interface AssetMeta {
@@ -115,4 +117,30 @@ export interface ProviderStatus {
   reason: string | null;
   license: string;
   licenseReviewRequired: boolean;
+  /** La generación envía imágenes o descripciones a un servicio externo. */
+  sendsDataExternally: boolean;
+}
+
+export type GenerationQuality = 'borrador' | 'alta' | 'maxima';
+export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+
+/** Trabajo de generación del motor local (services/api/jobs.py). */
+export interface GenerationJob {
+  id: string;
+  provider: string;
+  status: JobStatus;
+  progress: number;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  params: { prompt: string | null; seed: number | null; quality: GenerationQuality; imageName: string | null };
+  name: string;
+  category: AssetCategory;
+  error: string | null;
+  engine: string | null;
+  license: string | null;
+  sizeBytes: number | null;
+  hasReference: boolean;
+  metadata: Record<string, unknown>;
+  durationSeconds: number | null;
 }

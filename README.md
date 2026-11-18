@@ -2,9 +2,9 @@
 
 Estudio de creación 3D asistido por IA para generar, editar, preparar y exportar modelos para videojuegos en **GLB (glTF 2.0)**. Diseñado para **GANADERÍA 27**, pero válido para cualquier tipo de activo: humanos, animales, vehículos, ropa, edificios, escenarios y objetos.
 
-> **Estado: Fase 1 completada — Fundación del software.**
-> Importar, ver, inspeccionar, editar materiales y transformaciones, y exportar GLB con validación de ida y vuelta.
-> La generación con IA (TRELLIS) empieza en la Fase 2. Consulta [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Estado: Fase 2 completada — Generación con IA.**
+> Genera modelos 3D desde una imagen o una descripción con **TRELLIS.2** en las GPU gratuitas de Hugging Face, sin necesitar una tarjeta gráfica potente.
+> Además: importar, ver, inspeccionar, editar y exportar GLB con validación de ida y vuelta. Consulta [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Qué funciona hoy
 
@@ -17,6 +17,7 @@ Estudio de creación 3D asistido por IA para generar, editar, preparar y exporta
 | Materiales | Base Color, Roughness, Metallic, Emissive y opacidad editables · mapas PBR por canal con resolución |
 | Animaciones | Lista de clips con duración, reproducción y pausa |
 | Exportación GLB | GLB 2.0 binario con materiales PBR, texturas, esqueletos y animaciones · **el archivo exportado se vuelve a abrir y se compara con el original** · guardado opcional como nueva versión |
+| Generación IA | Imagen → 3D y texto → 3D con TRELLIS.2 (Hugging Face, gratis) · plantillas taurinas · 3 calidades · semillas para variantes · cola con progreso real · importación automática con procedencia y licencia |
 | Motor local | API FastAPI · detección de hardware (GPU, VRAM, RAM) · gestor de proveedores (TRELLIS, Hunyuan3D, Tripo) · validador GLB en Python |
 | Interfaz | Escritorio (5 zonas) y móvil (paneles deslizantes) |
 
@@ -31,13 +32,16 @@ pnpm install
 pnpm dev            # interfaz en http://127.0.0.1:5173
 ```
 
-Motor local (opcional en la Fase 1; necesario para generar en la Fase 2):
+Motor local (necesario para generar con IA):
 
 ```bash
 python -m pip install -r services/requirements.txt
-cp .env.example .env
-pnpm api            # http://127.0.0.1:8000
+cp .env.example .env      # opcional: añade HF_TOKEN para más cupo gratuito
+pnpm api                  # http://127.0.0.1:8000
+pnpm diagnose             # comprueba la conexión con Hugging Face
 ```
+
+Guía de generación: [docs/GENERATION.md](docs/GENERATION.md).
 
 Pruebas:
 

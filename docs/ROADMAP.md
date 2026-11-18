@@ -23,11 +23,24 @@ Una fase no se da por terminada porque exista el código: debe superar sus prueb
 - [x] El archivo exportado vuelve a abrirse correctamente (validador web + validador Python)
 - [ ] Comprobación en un segundo visor o motor → **pendiente de hacerla tú** con los GLB exportados
 
-## Fase 2 · Generación mediante IA
-- [ ] Conocer el hardware de desarrollo (GPU, VRAM, RAM)
-- [ ] Instalar TRELLIS (WSL2 en Windows) y conectar `TrellisProvider.generate`
-- [ ] Entrada por imagen y texto · cola de trabajos en segundo plano con progreso
-- [ ] Importación automática del resultado en la biblioteca con procedencia «generado»
+## ✅ Fase 2 · Generación mediante IA
+
+Hardware de desarrollo: GeForce GTX 745 (4 GB) y 12 GB de RAM → TRELLIS no puede ejecutarse en local. Decisión: TRELLIS.2 en las GPU gratuitas de Hugging Face, con el proveedor local preparado para un equipo futuro.
+
+- [x] Proveedor TRELLIS.2 (Space oficial de Microsoft) con lectura de la API en tiempo real
+- [x] Texto → imagen de referencia (FLUX.1 schnell) → 3D
+- [x] Cola de trabajos en segundo plano con progreso real (cola, ETA, pasos)
+- [x] Historial persistente en `storage/generations/`
+- [x] Generador en la interfaz: imagen o texto, plantillas taurinas, calidad, semilla y consentimiento de envío
+- [x] Importación automática a la biblioteca con procedencia, motor, licencia y etiquetas
+- [x] Diagnóstico de conexión (`pnpm diagnose`)
+- [x] Pruebas: flujo completo con un Space simulado de la misma API, cola, errores de cupo, persistencia
+
+**Pruebas superadas**
+- [x] Imagen → GLB con texturas PBR importado y abierto en el visor (con Space simulado)
+- [x] Texto → imagen de referencia → GLB (con Space simulado)
+- [x] Sin duplicados tras recargar la página
+- [ ] **Primera generación real contra Hugging Face** → pendiente en tu PC con `pnpm diagnose --imagen …` (el entorno de desarrollo de Claude no tiene acceso a Hugging Face)
 
 ## Fase 3 · Procesamiento profesional
 - [ ] Integración con Blender en modo sin interfaz

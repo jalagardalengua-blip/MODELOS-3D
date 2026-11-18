@@ -15,6 +15,7 @@ from ...base_provider import (
     Capability,
     GenerationRequest,
     GenerationResult,
+    ProgressFn,
     ProviderKind,
     ProviderUnavailableError,
 )
@@ -45,5 +46,5 @@ class TrellisProvider(BaseProvider):
             return False, f"TRELLIS_PATH no existe: {path}"
         return False, "Instalación detectada. La integración de inferencia llega en la Fase 2."
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(self, request: GenerationRequest, progress: ProgressFn | None = None) -> GenerationResult:
         raise ProviderUnavailableError("La generación con TRELLIS se implementa en la Fase 2.")

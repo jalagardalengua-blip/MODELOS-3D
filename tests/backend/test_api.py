@@ -31,9 +31,11 @@ def test_default_providers_are_listed_and_never_fake_availability(monkeypatch):
     monkeypatch.delenv("TRIPO_ENABLED", raising=False)
     data = client().get("/api/providers").json()["providers"]
     ids = {p["id"] for p in data}
-    assert ids == {"trellis", "hunyuan3d", "tripo"}
-    # En la Fase 1 ningún proveedor real puede generar todavía.
-    assert all(not p["available"] for p in data)
+    assert ids == {"trellis2-hf", "trellis", "hunyuan3d", "tripo"}
+    # Los motores locales y de pago no se anuncian como disponibles sin estarlo.
+    assert all(not p["available"] for p in data if p["id"] != "trellis2-hf")
+    hf = next(p for p in data if p["id"] == "trellis2-hf")
+    assert hf["enabled"] is True and hf["sendsDataExternally"] is True
     tripo = next(p for p in data if p["id"] == "tripo")
     assert tripo["enabled"] is False, "Tripo debe estar desactivado por defecto"
 
@@ -64,7 +66,7 @@ class _FakeProvider(BaseProvider):
     def check_availability(self):
         return self._available, None if self._available else "no"
 
-    def generate(self, request: GenerationRequest) -> GenerationResult:
+    def generate(self, request: GenerationRequest, progress=None) -> GenerationResult:
         return GenerationResult(glb=make_test_cube(), engine=self.id, license=self.license)
 
 

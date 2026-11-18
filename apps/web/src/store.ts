@@ -22,7 +22,7 @@ export interface LogEntry {
 export type LightingPreset = 'estudio' | 'exterior' | 'atardecer' | 'plaza-noche';
 export type LeftTab = 'biblioteca' | 'generador';
 export type RightTab = 'propiedades' | 'materiales' | 'validacion' | 'motor';
-export type BottomTab = 'registro' | 'animaciones';
+export type BottomTab = 'registro' | 'animaciones' | 'trabajos';
 
 export interface LoadedModel {
   assetId: string;
@@ -39,6 +39,18 @@ export interface ExportResult {
   /** Comparación del archivo exportado reabierto frente al original. */
   roundTrip: { label: string; before: number; after: number }[];
   preserved: boolean;
+}
+
+export interface AddGlbInput {
+  name: string;
+  source: AssetMeta['provenance']['source'];
+  originalFileName?: string | null;
+  engine?: string | null;
+  jobId?: string | null;
+  category?: AssetCategory;
+  license?: string;
+  tags?: string[];
+  project?: string;
 }
 
 interface ViewOptions {
@@ -75,6 +87,8 @@ interface StudioState {
   log: (level: LogLevel, message: string) => void;
   refreshLibrary: () => Promise<void>;
   importFiles: (files: FileList | File[]) => Promise<void>;
+  /** Valida un GLB y lo añade a la biblioteca. Devuelve el id del activo o null. */
+  addGlbToLibrary: (buffer: ArrayBuffer, input: AddGlbInput) => Promise<string | null>;
   selectAsset: (id: string | null) => Promise<void>;
   removeAsset: (id: string) => Promise<void>;
   updateMeta: (id: string, patch: Partial<Pick<AssetMeta, 'name' | 'project' | 'category' | 'tags' | 'license'>>) => Promise<void>;
@@ -135,56 +149,71 @@ export const useStudio = create<StudioState>((set, get) => ({
     set({ assets });
   },
 
+  addGlbToLibrary: async (buffer, input) => {
+    const { log } = get();
+    const label = input.originalFileName ?? input.name;
+    const validation = validateGlb(buffer);
+    if (!validation.ok) {
+      validation.errors.forEach((e) => log('error', `${label}: ${e}`));
+      log('error', `«${label}» no se ha añadido porque no es un GLB válido.`);
+      return null;
+    }
+    validation.warnings.forEach((w) => log('warn', `${label}: ${w}`));
+
+    let stats: ModelStats;
+    try {
+      const gltf = await loadGlb(buffer);
+      stats = computeStats(gltf.scene, gltf.animations);
+      disposeObject(gltf.scene);
+    } catch (e) {
+      log('error', `three.js no pudo abrir «${label}»: ${e instanceof Error ? e.message : e}`);
+      return null;
+    }
+
+    const ts = new Date().toISOString();
+    const meta: AssetMeta = {
+      id: db.newId(),
+      name: input.name,
+      project: input.project ?? 'GANADERÍA 27',
+      category: input.category ?? 'otro',
+      tags: input.tags ?? [],
+      license: input.license ?? 'Sin especificar',
+      provenance: {
+        source: input.source,
+        engine: input.engine ?? null,
+        originalFileName: input.originalFileName ?? null,
+        parentId: null,
+        jobId: input.jobId ?? null,
+      },
+      version: 1,
+      sizeBytes: buffer.byteLength,
+      createdAt: ts,
+      updatedAt: ts,
+      thumbnail: null,
+      stats,
+    };
+    await db.saveAsset(meta, new Blob([buffer], { type: 'model/gltf-binary' }));
+    log('ok', `«${meta.name}» añadido a la biblioteca (${stats.meshes} mallas, ${stats.triangles.toLocaleString('es-ES')} triángulos).`);
+    await get().refreshLibrary();
+    return meta.id;
+  },
+
   importFiles: async (files) => {
     const { log } = get();
-    const list = Array.from(files);
     let lastId: string | null = null;
-    for (const file of list) {
+    for (const file of Array.from(files)) {
       if (!/\.glb$/i.test(file.name)) {
-        log('warn', `«${file.name}» omitido: en esta fase solo se importan archivos .glb (glTF binario).`);
+        log('warn', `«${file.name}» omitido: solo se importan archivos .glb (glTF binario).`);
         continue;
       }
       log('info', `Importando «${file.name}» (${formatBytes(file.size)})…`);
-      const buffer = await file.arrayBuffer();
-      const validation = validateGlb(buffer);
-      if (!validation.ok) {
-        validation.errors.forEach((e) => log('error', `${file.name}: ${e}`));
-        log('error', `«${file.name}» no se ha importado porque no es un GLB válido.`);
-        continue;
-      }
-      validation.warnings.forEach((w) => log('warn', `${file.name}: ${w}`));
-
-      let stats: ModelStats | null = null;
-      try {
-        const gltf = await loadGlb(buffer);
-        stats = computeStats(gltf.scene, gltf.animations);
-        disposeObject(gltf.scene);
-      } catch (e) {
-        log('error', `three.js no pudo abrir «${file.name}»: ${e instanceof Error ? e.message : e}`);
-        continue;
-      }
-
-      const ts = new Date().toISOString();
-      const meta: AssetMeta = {
-        id: db.newId(),
+      const id = await get().addGlbToLibrary(await file.arrayBuffer(), {
         name: stripExtension(file.name),
-        project: 'GANADERÍA 27',
-        category: 'otro' as AssetCategory,
-        tags: [],
-        license: 'Sin especificar',
-        provenance: { source: 'import', engine: null, originalFileName: file.name, parentId: null },
-        version: 1,
-        sizeBytes: file.size,
-        createdAt: ts,
-        updatedAt: ts,
-        thumbnail: null,
-        stats,
-      };
-      await db.saveAsset(meta, new Blob([buffer], { type: 'model/gltf-binary' }));
-      log('ok', `«${file.name}» añadido a la biblioteca (${stats.meshes} mallas, ${stats.triangles.toLocaleString('es-ES')} triángulos).`);
-      lastId = meta.id;
+        source: 'import',
+        originalFileName: file.name,
+      });
+      if (id) lastId = id;
     }
-    await get().refreshLibrary();
     if (lastId) await get().selectAsset(lastId);
   },
 

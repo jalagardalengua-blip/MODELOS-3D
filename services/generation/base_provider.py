@@ -10,7 +10,11 @@ from __future__ import annotations
 import abc
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+from collections.abc import Callable
 from typing import Any
+
+# Función de progreso: (fracción 0–1, mensaje)
+ProgressFn = Callable[[float, str], None]
 
 
 class ProviderKind(str, Enum):
@@ -37,6 +41,7 @@ class ProviderStatus:
     reason: str | None
     license: str
     licenseReviewRequired: bool  # noqa: N815 (contrato compartido con el frontend)
+    sendsDataExternally: bool = False  # noqa: N815
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -57,6 +62,7 @@ class GenerationResult:
     engine: str
     license: str
     metadata: dict[str, Any] = field(default_factory=dict)
+    reference_image: bytes | None = None
 
 
 class ProviderUnavailableError(RuntimeError):
@@ -70,6 +76,8 @@ class BaseProvider(abc.ABC):
     capabilities: tuple[Capability, ...] = ()
     license: str = ""
     license_review_required: bool = False
+    #: True si la generación envía datos (imágenes, descripciones) a un servicio externo.
+    sends_data_externally: bool = False
 
     def is_enabled(self) -> bool:
         """Los proveedores locales están activados por defecto; los externos no."""
@@ -80,8 +88,8 @@ class BaseProvider(abc.ABC):
         """Devuelve (disponible, motivo si no lo está). No debe lanzar excepciones."""
 
     @abc.abstractmethod
-    def generate(self, request: GenerationRequest) -> GenerationResult:
-        """Genera un modelo y lo devuelve como GLB."""
+    def generate(self, request: GenerationRequest, progress: ProgressFn | None = None) -> GenerationResult:
+        """Genera un modelo y lo devuelve como GLB. `progress(fracción, mensaje)` informa del avance."""
 
     def status(self) -> ProviderStatus:
         enabled = self.is_enabled()
@@ -99,4 +107,5 @@ class BaseProvider(abc.ABC):
             reason=None if (enabled and available) else reason,
             license=self.license,
             licenseReviewRequired=self.license_review_required,
+            sendsDataExternally=self.sends_data_externally,
         )

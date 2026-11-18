@@ -26,7 +26,7 @@ pnpm dev
 
 Abre http://127.0.0.1:5173. La biblioteca se guarda en el navegador (IndexedDB): usa siempre el mismo navegador y la misma dirección para ver tus modelos.
 
-## 3. Motor local (opcional en la Fase 1)
+## 3. Motor local (necesario para generar con IA)
 
 ```powershell
 python -m venv .venv
@@ -37,6 +37,19 @@ pnpm api
 ```
 
 La interfaz mostrará «Motor local» en verde. En la pestaña **Motor** verás la GPU, la VRAM, la RAM y el estado de cada proveedor.
+
+### Cuenta gratuita de Hugging Face (recomendado)
+1. Crea una cuenta en huggingface.co.
+2. Settings → Access Tokens → *New token* → tipo **Read**.
+3. Abre `.env` y pon `HF_TOKEN=hf_…` (este archivo nunca se sube a GitHub).
+4. Reinicia el motor y comprueba la conexión:
+
+```powershell
+pnpm diagnose
+python -m services.generation.external.huggingface.diagnose --imagen C:\ruta\a\foto.png
+```
+
+El segundo comando hace una generación real y guarda `storage\diagnostico.glb`.
 
 ## 4. Pruebas
 

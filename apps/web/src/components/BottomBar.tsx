@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useStudio } from '../store';
 import { Tabs } from './ui';
+import { JobsView } from '../generator/JobsView';
+import { isActive, useEngine } from '../settings/useEngineStatus';
 
 const LEVEL_COLOR = { info: 'text-zinc-400', ok: 'text-emerald-400', warn: 'text-amber-300', error: 'text-red-400' };
 const LEVEL_TAG = { info: 'INFO', ok: ' OK ', warn: 'AVISO', error: 'ERROR' };
@@ -73,19 +75,27 @@ export function BottomBar() {
   const setTab = useStudio((s) => s.setBottomTab);
   const clipCount = useStudio((s) => s.loaded?.animations.length ?? 0);
   const errors = useStudio((s) => s.logs.filter((l) => l.level === 'error').length);
+  const activeJobs = useEngine((s) => s.jobs.filter(isActive).length);
   return (
     <div className="flex h-36 shrink-0 flex-col border-t border-[var(--line)] bg-[var(--panel)] sm:h-40">
-      <div className="max-w-xs">
+      <div className="max-w-md">
         <Tabs
           value={tab}
           onChange={setTab}
           items={[
             { id: 'registro', label: 'Registro', badge: errors ? <span className="rounded bg-red-500/20 px-1 text-[9px] text-red-300">{errors}</span> : undefined },
             { id: 'animaciones', label: 'Animaciones', badge: clipCount ? <span className="text-[9px] text-zinc-500">{clipCount}</span> : undefined },
+            {
+              id: 'trabajos',
+              label: 'Trabajos',
+              badge: activeJobs ? <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent-2)]" /> : undefined,
+            },
           ]}
         />
       </div>
-      {tab === 'registro' ? <LogView /> : <AnimationsView />}
+      {tab === 'registro' && <LogView />}
+      {tab === 'animaciones' && <AnimationsView />}
+      {tab === 'trabajos' && <JobsView />}
     </div>
   );
 }

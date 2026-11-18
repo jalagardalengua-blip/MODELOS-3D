@@ -6,7 +6,15 @@ registrarlo en DEFAULT_PROVIDERS.
 
 from __future__ import annotations
 
-from .base_provider import BaseProvider, GenerationRequest, GenerationResult, ProviderStatus, ProviderUnavailableError
+from .base_provider import (
+    BaseProvider,
+    GenerationRequest,
+    GenerationResult,
+    ProgressFn,
+    ProviderStatus,
+    ProviderUnavailableError,
+)
+from .external.huggingface.trellis2_provider import Trellis2SpaceProvider
 from .external.tripo.provider import TripoProvider
 from .local.hunyuan.provider import HunyuanProvider
 from .local.trellis.provider import TrellisProvider
@@ -15,7 +23,7 @@ from .local.trellis.provider import TrellisProvider
 class ProviderManager:
     def __init__(self, providers: list[BaseProvider] | None = None) -> None:
         self._providers: dict[str, BaseProvider] = {}
-        for p in providers if providers is not None else [TrellisProvider(), HunyuanProvider(), TripoProvider()]:
+        for p in providers if providers is not None else [Trellis2SpaceProvider(), TrellisProvider(), HunyuanProvider(), TripoProvider()]:
             self.register(p)
 
     def register(self, provider: BaseProvider) -> None:
@@ -34,9 +42,11 @@ class ProviderManager:
     def statuses(self) -> list[ProviderStatus]:
         return [p.status() for p in self._providers.values()]
 
-    def generate(self, provider_id: str, request: GenerationRequest) -> GenerationResult:
+    def generate(
+        self, provider_id: str, request: GenerationRequest, progress: ProgressFn | None = None
+    ) -> GenerationResult:
         provider = self.get(provider_id)
         status = provider.status()
         if not status.available:
             raise ProviderUnavailableError(status.reason or "Proveedor no disponible.")
-        return provider.generate(request)
+        return provider.generate(request, progress)

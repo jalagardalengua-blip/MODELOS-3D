@@ -28,8 +28,9 @@ ALAGARDA 3D STUDIO se divide en cuatro capas independientes. Cambiar de motor de
 | `pages/Studio.tsx` | Distribución en 5 zonas y paneles móviles |
 | `editor/` | Visor (`Viewport`), propiedades, materiales, validación |
 | `library/` | Biblioteca de activos |
-| `generator/` | Panel de generación (se activa en la Fase 2) |
-| `settings/` | Estado del motor local, hardware y proveedores |
+| `generator/` | Panel de generación y vista de trabajos |
+| `settings/` | Estado del motor, hardware, proveedores, sondeo de trabajos e importación automática |
+| `lib/engineApi.ts` | Cliente HTTP del motor local |
 | `components/` | Barra superior, barra inferior y componentes de interfaz |
 | `lib/glbFormat.ts` | Lector y validador GLB sin dependencias (probado con Vitest) |
 | `lib/modelLoader.ts` | Carga, estadísticas y exportación con three.js |
@@ -53,6 +54,9 @@ ALAGARDA 3D STUDIO se divide en cuatro capas independientes. Cambiar de motor de
 - `api/main.py` — `create_app()` registra CORS (solo orígenes locales y Tauri) y rutas.
 - `api/routes/system.py` — `/api/health`, `/api/hardware`, `/api/providers`.
 - `api/routes/glb.py` — `POST /api/glb/validate`.
+- `api/routes/generation.py` — `POST /api/generate`, `GET /api/jobs`, `GET /api/jobs/{id}`, `POST /api/jobs/{id}/cancel`, `GET /api/jobs/{id}/result.glb`, `GET /api/jobs/{id}/reference`.
+- `api/jobs.py` — cola de trabajos (un trabajador), progreso, validación del GLB y persistencia en `storage/generations/`.
+- `generation/external/huggingface/` — cliente de Spaces que lee su API real, proveedor TRELLIS.2, texto → imagen (FLUX.1 schnell) y diagnóstico.
 - `api/security/secrets.py` — lectura de claves desde `.env`; nunca se devuelven por la API.
 - `generation/base_provider.py` — contrato `BaseProvider` (`check_availability`, `generate`, `status`).
 - `generation/provider_manager.py` — registro de proveedores; rechaza generar con uno no disponible.

@@ -9,3 +9,6 @@ httpx>=0.27
 
 # Las dependencias de TRELLIS (PyTorch, CUDA…) se instalan aparte en su propio
 # entorno; ver docs/GENERATION.md.
+
+# Proveedor TRELLIS.2 en Hugging Face (Fase 2)
+gradio_client>=1.3
