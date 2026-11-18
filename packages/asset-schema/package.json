@@ -1,0 +1,6 @@
+{
+  "name": "@alagarda/asset-schema",
+  "version": "0.1.0",
+  "private": true,
+  "main": "asset.schema.json"
+}

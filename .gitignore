@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.vite/
+coverage/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Secretos
+.env
+.env.local
+
+# Activos generados y pesos de IA: nunca en el repositorio
+storage/*
+!storage/.gitkeep
+models/
+weights/
+*.safetensors
+*.ckpt
+
+# Tauri
+apps/desktop/src-tauri/target/
+
+.DS_Store
+Thumbs.db
